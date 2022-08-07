@@ -1,3 +1,5 @@
+from http.client import FOUND
+from pickle import FALSE
 import requests
 from bs4 import BeautifulSoup
 from yt_dlp import YoutubeDL
@@ -32,11 +34,18 @@ if page.status_code != 200:
     exit()
 animeTable = BeautifulSoup(page.content, 'html.parser').find(id='myTopnav').find_all(class_='dropdown')[2].find(class_='dropdown-content').find_all(class_='sub_link')
 
+found=False
+
 for anime in animeTable:
     if anime.text.lower() == animeName.lower():
         print("Anime found!")
         subLink = anime['href']
+        found = True
         break
+
+if found==False:
+    print("Couldn't find anime with that name")
+    exit()
 
 #scrapping series
 seriesName = []
