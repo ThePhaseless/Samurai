@@ -1,5 +1,3 @@
-from http.client import FOUND
-from pickle import FALSE
 import requests
 from bs4 import BeautifulSoup
 from yt_dlp import YoutubeDL
