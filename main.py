@@ -7,6 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class Odcinek:
     number: float
+    link: str
     type: str
 
 @dataclass
@@ -85,12 +86,12 @@ for serieIndx in range(0, len(seriesLink)):
     
     print("Found " + str(len(epTable)) + " episodes")
     epStart=int(input("Start episode number from " + seriesName[serieIndx] + ": "))
-    if(not 1 <= epStart < len(epTable)):
+    if(not 1 <= epStart <= len(epTable)):
         print("Start episode must be in range!")
         exit()
     
     epEnd=int(input("Last episode number from this serie: "))
-    if(not 1 <= epEnd < len(epTable)):
+    if(not 1 <= epEnd <= len(epTable)):
         print("End episode must be in range!")
         exit()
     
@@ -112,7 +113,7 @@ for serieIndx in range(0, len(seriesLink)):
         if epCategory not in allowedCategory:
             print("Skipping episode number " + str(allEpisodes) + " (" + epCategory + ")")
             continue
-        episodes+=[Odcinek(allEpisodes, epCategory)]
+        episodes+=[Odcinek(allEpisodes,  eps.find('td').find('a')['href'], epCategory)]
     print("Added " + str(len(episodes)) + " episodes to download")
 
     numLen = len(str(allEpisodes))
@@ -120,7 +121,7 @@ for serieIndx in range(0, len(seriesLink)):
     #Scrapping players data
     links = []
     for episode in episodes:
-        epLink = subLink + serieLink.replace('.html', '') + "-" + str(episode.number).zfill(numLen) + ".html"
+        epLink = subLink + episode.link
         print("Searching videos in: " + epLink)
         page = requests.get(epLink)
         if page.status_code != 200:
