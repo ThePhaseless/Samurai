@@ -4,25 +4,33 @@ from yt_dlp import YoutubeDL
 from dataclasses import dataclass
 
 
+def check(list1, list2):
+    for l1 in list1:
+        for l2 in list2:
+            if l1==l2:
+                return True
+    return False   
+
 @dataclass
 class Odcinek:
     number: float
-    link: str
+    season: str
     type: str
+    link: str
+    players: list
 
 @dataclass
 class PlayerOption:
-    quality: str
-    hostingName: str
+    server: str
     translator: str
-    embedLink: str
-
-@dataclass
-class DownloadLink:
-    links: list
-    episode: float
-    season: float
+    quality: str
+    link: str
     
+    
+qualityList = ["FHD", "HD", "SD"]
+supportedHostings=['cda', 'sibnet', 'd-on']
+
+
 animeName=input("Enter name of the anime: ")
 
 
@@ -46,38 +54,39 @@ if found==False:
     print("Couldn't find anime with that name")
     exit()
 
-#scrapping series
-seriesName = []
-seriesLink = []
+#scrapping season
+seasonNames = []
+seasonLinks = []
 page = requests.get(subLink)
-seriesTable = BeautifulSoup(page.content, 'html.parser').find(id='myTopnav').find_all(class_='dropdown')[0].find(class_='dropdown-content').find_all('a')
+seasonsTable = BeautifulSoup(page.content, 'html.parser').find(id='myTopnav').find_all(class_='dropdown')[0].find(class_='dropdown-content').find_all('a')
 
-for serie in seriesTable:
-    skipSerie=input("Search in season: " + serie.text + "? (Y/N/skip) ")
-    if skipSerie.lower() == 'n':
+for season in seasonsTable:
+    skipSeason=input("Search in season: " + season.text + "? (Y/N/skip) ")
+    if skipSeason.lower() == 'n':
         continue
-    elif skipSerie.lower() == 'skip':
+    elif skipSeason.lower() == 'skip':
         print("Skipping rest of the seasons/extra")
         break
-    elif skipSerie.lower() != 'y':
+    elif skipSeason.lower() != 'y':
         print("Skipping this season")
         continue
-    seriesLink+=[serie['href']]
-    seriesName+=[serie.text]
+    seasonLinks+=[season['href']]
+    seasonNames+=[season.text]
 
 episodes = []
 
 checkedCategory = ["oparte na mandze"]
 allowedCategory = ["oparte na mandze"]
 
-downloadLinks = []
-
-for serieIndx in range(0, len(seriesLink)):
-    #Getting serie episodes list
-    serieLink = seriesLink[serieIndx]
-    siteUrl = subLink + serieLink
-    print("Searching episodes in: " + siteUrl)
-    page = requests.get(siteUrl)
+for seasonIndx in range(0, len(seasonLinks)):
+    #Getting season episodes list
+    seasonName = seasonNames[seasonIndx]
+    if 'seria' in seasonName:
+        seasonName = 'S' + str(seasonIndx+1)
+    seasonLink = seasonLinks[seasonIndx]
+    fullUrl = subLink + seasonLink
+    print("Searching episodes in: " + fullUrl)
+    page = requests.get(fullUrl)
     if page.status_code != 200:
         print("Site couldn't be reached: " + str(page))
         exit()
@@ -85,15 +94,15 @@ for serieIndx in range(0, len(seriesLink)):
     epTable.reverse()
     
     print("Found " + str(len(epTable)) + " episodes")
-    epStart=int(input("Start episode number from " + seriesName[serieIndx] + ": "))
-    if(not 1 <= epStart <= len(epTable)):
+    epStart=int(input("Start episode number from " + seasonNames[seasonIndx] + ": "))
+    while(not 1 <= epStart <= len(epTable)):
         print("Start episode must be in range!")
-        exit()
+        epStart=int(input("Start episode number from " + seasonName[seasonIndx] + ": "))
     
-    epEnd=int(input("Last episode number from this serie: "))
-    if(not 1 <= epEnd <= len(epTable)):
+    epEnd=int(input("Last episode number from this season: "))
+    while(not 1 <= epEnd <= len(epTable)):
         print("End episode must be in range!")
-        exit()
+        epEnd=int(input("Last episode number from this season: "))
     
     #Scrapping episode data
     allEpisodes=0
@@ -113,92 +122,56 @@ for serieIndx in range(0, len(seriesLink)):
         if epCategory not in allowedCategory:
             print("Skipping episode number " + str(allEpisodes) + " (" + epCategory + ")")
             continue
-        episodes+=[Odcinek(allEpisodes,  eps.find('td').find('a')['href'], epCategory)]
+        episodes+=[Odcinek(allEpisodes, seasonName, epCategory, eps.find('td').find('a')['href'], [])]
     print("Added " + str(len(episodes)) + " episodes to download")
-
     numLen = len(str(allEpisodes))
     
-    #Scrapping players data
-    links = []
-    for episode in episodes:
-        epLink = subLink + episode.link
-        print("Searching videos in: " + epLink)
-        page = requests.get(epLink)
-        if page.status_code != 200:
-            print("Site couldn't be reached: " + str(page))
-            exit()
+#Scrapping players data
+for episode in episodes:
+    epLink = subLink + episode.link
+    print("Searching videos in: " + epLink)
+    page = requests.get(epLink)
+    if page.status_code != 200:
+        print("Site couldn't be reached: " + str(page))
+        exit()
 
-        rawPlayers = BeautifulSoup(page.content, 'html.parser').find(class_='lista').find_all("tr", class_='lista_hover')
-        print("Found hostings: ")
+    rawPlayers = BeautifulSoup(page.content, 'html.parser').find(class_='lista').find_all("tr", class_='lista_hover')
+    print("Found hostings: ")
 
-        players = []
+    #Scrapping embed Players URL and data
+    for rawPlayer in rawPlayers:
+        online = list(rawPlayer)[3].text
+        hosting = list(rawPlayer)[5].text
+        translator = list(rawPlayer)[7].text
+        quality = list(rawPlayer)[9].text.replace(
+            "oglądaj [", '').replace("]", '')
+        embedLink = subLink + "odtwarzacz-" + \
+            list(rawPlayer)[9].find("span")["rel"] + ".html"
 
-        
-        #Scrapping embed Players URL and data
-        for rawPlayer in rawPlayers:
-            online = list(rawPlayer)[3].text
-            hosting = list(rawPlayer)[5].text
-            translator = list(rawPlayer)[7].text
-            quality = list(rawPlayer)[9].text.replace(
-                "oglądaj [", '').replace("]", '')
-            embedLink = subLink + "odtwarzacz-" + \
-                list(rawPlayer)[9].find("span")["rel"] + ".html"
-
-            if(online == "ONLINE"):
-                players += [PlayerOption(quality, hosting, translator, embedLink)]
-                print(str(len(players)) + ". " + translator +
-                      " " + hosting + " " + quality)
-                
-
-        print("\n Choosing player: ")
-        
-
-        
-        sources = []
-        
-        # class Player:
-        #     quality: string
-        #     hostingName: string
-        #     translator: string
-        #     embedLink: string
-        
-        def check(list1, list2):
-            for l1 in list1:
-                for l2 in list2:
-                    if l1==l2:
-                        return True
-            return False            
-        
-        qualityList = ["FHD", "HD", "SD"]
-        supportedHostings=['cda', 'sibnet', 'd-on']
-        
-        for player in players:
-            if check(qualityList, player.quality.split(" + ")) == True:
-                if player.hostingName in supportedHostings:
-                    playerSite = requests.get(player.embedLink)
-                    srcLink = BeautifulSoup(
-                        playerSite.content, "html.parser").find('iframe')['src']
-                    sources += [srcLink]
-                    print("Added player " + srcLink)
-        downloadLinks+=[DownloadLink(sources, episode.number, seriesName[serieIndx])]
+        if(online == "ONLINE"):
+            if check(qualityList, quality.split(" + ")) == True:
+                if hosting in supportedHostings:
+                    playerSite = requests.get(embedLink)
+                    srcLink = BeautifulSoup(playerSite.content, "html.parser").find('iframe')['src']
+                    episode.players += [PlayerOption(hosting, translator, quality, srcLink)]
+                    print(str(len(episode.players)) + ". " + translator +
+                    " " + hosting + " " + quality)
+                 
 
 print("Searching complete! \n \n")
 print("Starting downloads \n")
 
-for link in downloadLinks:
+for episode in episodes:
     ydl_opts = {
-                'outtmpl': './Downloads/' + animeName.capitalize() + '/' + link.season + '/' + animeName.capitalize() + ' E' + str(link.episode).zfill(numLen) + '.mp4'
+                'outtmpl': './Downloads/' + animeName.capitalize() + '/' + episode.season + '/' 'E' + str(episode.number).zfill(numLen) + '.mp4'
             }
-
-    sourceIndx = 0
-    retry = 1
     with YoutubeDL(ydl_opts) as ydl:
-        while retry==1:
-            retry=0
+        for player in episode.players:
             try:
-                ydl.download(link.links[sourceIndx])
+                ydl.download(player.link)
             except:
-                sourceIndx += 1
-                retry=1
+                continue
+            finally:
+                break
             
 print('Done')
