@@ -1,6 +1,4 @@
 # WbijamAnimeScrapper
-IN DEVELOPMENTd
-
 
 How to use? 
 ```
