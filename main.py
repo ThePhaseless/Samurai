@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 
 parser = argparse.ArgumentParser(
-    prog="Wbijam anime downloader", description="Download anime from Wbijam.pl")
+    prog="main.py", description="Download anime from Wbijam.pl")
 
 parser.add_argument("-n", "--name", help="Name of the anime")
 parser.add_argument("-p", "--path", help="Base download path")
