@@ -1,4 +1,6 @@
+from traceback import print_tb
 import requests
+import os
 import argparse
 from bs4 import BeautifulSoup
 from yt_dlp import YoutubeDL
@@ -12,6 +14,8 @@ parser.add_argument("-n", "--name", help="Name of the anime")
 parser.add_argument("-p", "--path", help="Base download path")
 parser.add_argument(
     "-a", "--all", help="Download all episodes (without openings and etc)", action='store_true')
+parser.add_argument(
+    "-f", "--force", help="Force redownload when using --all parameter")
 args = parser.parse_args()
 
 
@@ -21,6 +25,20 @@ def check(list1, list2):
             if l1 == l2:
                 return True
     return False
+
+
+def searchForFiles(path):
+    existingFiles = []
+    path = (args.path or "./Downloads") + "\\" + path
+    try:
+        os.chdir(path)
+    except:
+        return {}
+    for file in os.listdir():
+        if "E" in file and ".mp4" in file:
+            existingFiles += [int(file.replace(".mp4", "").replace("E", ""))]
+    print("Found " + str(len(existingFiles)) + " downloaded episodes")
+    return existingFiles
 
 
 @dataclass
@@ -74,6 +92,9 @@ seasonLinks = []
 page = requests.get(subLink)
 seasonsTable = BeautifulSoup(page.content, 'html.parser').find(id='myTopnav').find_all(
     class_='dropdown')[0].find(class_='dropdown-content').find_all('a')
+
+animeName = BeautifulSoup(page.content, 'html.parser').find(id='myTopnav').find_all(
+    class_='dropdown')[0].find(class_='dropbtn').text.replace("\n        \n", "")
 
 for season in seasonsTable:
     if args.all and 'seria' in season.text:
@@ -134,10 +155,15 @@ for seasonIndx in range(0, len(seasonLinks)):
         print("End episode must be in range!")
         epEnd = int(input("Last episode number from this season: "))
 
+    skipList = searchForFiles(animeName + "//" + seasonName)
     # Scrapping episode data
     allEpisodes = 0
     for eps in epTable:
         allEpisodes += 1
+        if allEpisodes in skipList and not args.force:
+            print("Episode " + str(allEpisodes) +
+                  " already downloaded, skipping...")
+            continue
         if (not epStart <= allEpisodes <= epEnd):
             continue
         if (allEpisodes > epEnd):
@@ -155,8 +181,9 @@ for seasonIndx in range(0, len(seasonLinks)):
             continue
         episodes += [Odcinek(allEpisodes, seasonName,
                              epCategory, eps.find('td').find('a')['href'], [])]
-    print("Added " + str(len(episodes)) + " episodes to download")
+    print("Added " + str(len(episodes)) + " episodes to queue")
     numLen = len(str(allEpisodes))
+
 
 # Scrapping players data
 for episode in episodes:
@@ -169,6 +196,10 @@ for episode in episodes:
 
     rawPlayers = BeautifulSoup(page.content, 'html.parser').find(
         class_='lista').find_all("tr", class_='lista_hover')
+
+    if len(rawPlayers) == 0:
+        print("Couldn't find any hosting for this episode, maybe it's not out yet")
+        continue
     print("Found hostings: ")
 
     # Scrapping embed Players URL and data
@@ -198,7 +229,7 @@ print("Starting downloads \n")
 
 for episode in episodes:
     ydl_opts = {
-        'outtmpl': (args.path + "/" or './Downloads/') + animeName.capitalize() + '/' + episode.season + '/' 'E' + str(episode.number).zfill(numLen) + '.mp4'
+        'outtmpl': (args.path + "/" or './Downloads/') + animeName + '/' + episode.season + '/' 'E' + str(episode.number).zfill(numLen) + '.mp4'
     }
     with YoutubeDL(ydl_opts) as ydl:
         for player in episode.players:
