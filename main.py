@@ -34,7 +34,7 @@ def searchForFiles(path):
     except:
         return {}
     for file in os.listdir():
-        if "E" in file and ".mp4" in file:
+        if "E" in file and ".mp4" in file and not ".part" in file:
             existingFiles += [int(file.replace(".mp4", "").replace("E", ""))]
     print("Found " + str(len(existingFiles)) + " downloaded episodes")
     return existingFiles
@@ -83,15 +83,15 @@ for animeName in animeNames:
     found = False
 
     for anime in animeTable:
-        if anime.text.lower() == animeName.lower():
+        if anime.text.lower().strip() == animeName.lower().strip():
             print("Anime found!")
             subLink = anime['href']
             found = True
             break
 
-    if found == False:
+    if not found:
         print("Couldn't find anime with name: " + animeName)
-        exit()
+        continue
 
     # scrapping season
     seasonNames = []
