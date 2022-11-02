@@ -28,7 +28,7 @@ def check(list1, list2):
 
 def searchForFiles(path):
     existingFiles = []
-    path = (args.path or "./Downloads") + "\\" + path
+    path = (args.path or "./Downloads") + "/" + path
     try:
         os.chdir(path)
     except:
@@ -163,7 +163,7 @@ for animeName in animeNames:
             print("End episode must be in range!")
             epEnd = int(input("Last episode number from this season: "))
 
-        skipList = searchForFiles(animeNameOg + "//" + seasonName)
+        skipList = searchForFiles(animeNameOg + "/" + seasonName)
         # Scrapping episode data
         allEpisodes = 0
         for eps in epTable:
@@ -235,7 +235,7 @@ for animeName in animeNames:
 
     for episode in episodes:
         ydl_opts = {
-            'outtmpl': (args.path + "/" or './Downloads/') + animeName + '/' + episode.season + '/' 'E' + str(episode.number).zfill(numLen) + '.mp4'
+            'outtmpl': (args.path or '.Downloads') + "/" + animeName + '/' + episode.season + '/' 'E' + str(episode.number).zfill(numLen) + '.mp4'
         }
         with YoutubeDL(ydl_opts) as ydl:
             for player in episode.players:
