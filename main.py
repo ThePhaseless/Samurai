@@ -60,13 +60,16 @@ class PlayerOption:
 qualityList = ["FHD", "HD", "SD"]
 supportedHostings = ['cda', 'sibnet', 'd-on']
 
-animeNames = []
+animeNames = [args.name]
 if args.file == None:
-    animeNames = [args.name or input("Enter name of the anime: ")]
+    if args.name == None:
+        animeNames += [input("Enter name of the anime: ")]
 else:
     f = open(args.file, "r")
     for animeName in f:
         animeNames += [animeName]
+
+animeNames.pop(0)
 
 for animeName in animeNames:
     # searching if anime exists
