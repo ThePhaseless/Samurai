@@ -102,7 +102,7 @@ for animeName in animeNames:
 
     animeName = BeautifulSoup(page.content, 'html.parser').find(id='myTopnav').find_all(
         class_='dropdown')[0].find(class_='dropbtn').text.replace("\n        \n", "")
-
+    animeNameOg = animeName
     for season in seasonsTable:
         if args.all and 'seria' in season.text:
             seasonLinks += [season['href']]
@@ -163,7 +163,7 @@ for animeName in animeNames:
             print("End episode must be in range!")
             epEnd = int(input("Last episode number from this season: "))
 
-        skipList = searchForFiles(animeName + "//" + seasonName)
+        skipList = searchForFiles(animeNameOg + "//" + seasonName)
         # Scrapping episode data
         allEpisodes = 0
         for eps in epTable:
