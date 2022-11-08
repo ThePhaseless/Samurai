@@ -26,7 +26,7 @@ def check(list1, list2):
     return False
 
 
-def searchForFiles(path):
+def searchForFiles(path: str):
     existingFiles = []
     path = (args.path or "./Downloads") + "/" + path
     try:
@@ -214,11 +214,13 @@ for animeName in animeNames:
             online = list(rawPlayer)[3].text
             hosting = list(rawPlayer)[5].text
             translator = list(rawPlayer)[7].text
-            quality = list(rawPlayer)[9].text.replace(
+            quality = list(rawPlayer)[9].text
+            if not "oglądaj" in quality:
+                continue
+            quality.replace(
                 "oglądaj [", '').replace("]", '')
             embedLink = subLink + "odtwarzacz-" + \
                 list(rawPlayer)[9].find("span")["rel"] + ".html"
-
             if (online == "ONLINE"):
                 if check(qualityList, quality.split(" + ")) == True:
                     if hosting in supportedHostings:
