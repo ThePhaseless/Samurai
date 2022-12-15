@@ -35,7 +35,13 @@ def searchForFiles(path: str):
         return {}
     for file in os.listdir():
         if "E" in file and ".mp4" in file and not ".part" in file:
-            existingFiles += [int(file.replace(".mp4", "").replace("E", ""))]
+            try:
+                epNum = int(file.replace(".mp4", "").replace("E", ""))
+            except:
+                # if file is in sonarr formatting
+                epNum = file[file.find(' - ')+3:file.find(' - ')+9]
+                epNum = int(epNum[epNum.find("E")+1, epNum.find("E")+2])
+            existingFiles += [epNum]
     print("Found " + str(len(existingFiles)) + " downloaded episodes")
     return existingFiles
 
