@@ -33,14 +33,16 @@ def searchForFiles(path: str):
         os.chdir(path)
     except:
         return {}
-    for file in os.listdir():
+    files = os.listdir()
+    for file in files:
         if "E" in file and ".mp4" in file and not ".part" in file:
             try:
                 epNum = int(file.replace(".mp4", "").replace("E", ""))
             except:
                 # if file is in sonarr formatting
                 epNum = file[file.find(' - ')+3:file.find(' - ')+9]
-                epNum = int(epNum[epNum.find("E")+1, epNum.find("E")+2])
+                epNum = epNum[epNum.find("E")+1:epNum.find("E")+3]
+                epNum = int(epNum)
             existingFiles += [epNum]
     print("Found " + str(len(existingFiles)) + " downloaded episodes")
     return existingFiles
@@ -154,17 +156,20 @@ for animeName in animeNames:
 
         print("Found " + str(len(epTable)) + " episodes")
 
+        epStart = None
+        epEnd = None
         if args.all == True:
-            start = 1
+            epStart = 1
             end = len(epTable)
-        epStart = start or int(input("Start episode number from " +
-                                     seasonNames[seasonIndx] + ": "))
+        if epStart == None:
+            epStart = int(input("Start episode number from " +
+                                seasonNames[seasonIndx] + ": "))
         while (not 1 <= epStart <= len(epTable)):
             print("Start episode must be in range!")
             epStart = int(input("Start episode number from " +
                                 seasonName[seasonIndx] + ": "))
-
-        epEnd = end or int(input("Last episode number from this season: "))
+        if epEnd == None:
+            epEnd = int(input("Last episode number from this season: "))
         while (not 1 <= epEnd <= len(epTable)):
             print("End episode must be in range!")
             epEnd = int(input("Last episode number from this season: "))
