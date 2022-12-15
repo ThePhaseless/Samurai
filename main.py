@@ -160,7 +160,7 @@ for animeName in animeNames:
         epEnd = None
         if args.all == True:
             epStart = 1
-            end = len(epTable)
+            epEnd = len(epTable)
         if epStart == None:
             epStart = int(input("Start episode number from " +
                                 seasonNames[seasonIndx] + ": "))
