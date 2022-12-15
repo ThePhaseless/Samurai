@@ -133,7 +133,7 @@ for animeName in animeNames:
 
     episodes = []
 
-    checkedCategory = ["oparte na mandze"]
+    checkedCategory = ["oparte na mandze", "powtórka"]
     allowedCategory = ["oparte na mandze"]
 
     for seasonIndx in range(0, len(seasonLinks)):
