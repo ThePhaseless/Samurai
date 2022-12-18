@@ -77,7 +77,6 @@ else:
     for animeName in f:
         animeNames += [animeName]
 
-animeNames.pop(0)
 
 for animeName in animeNames:
     # searching if anime exists
@@ -202,6 +201,11 @@ for animeName in animeNames:
                                  epCategory, eps.find('td').find('a')['href'], [])]
         print("Added " + str(len(episodes)) + " episodes to queue")
         numLen = len(str(allEpisodes))
+
+    for episode in episodes:
+        temp = episode.link
+        temp = temp[temp.find("-")+1:].replace(".html", '')
+        episode.number = int(temp)
 
     # Scrapping players data
     for episode in episodes:
