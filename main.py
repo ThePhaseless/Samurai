@@ -68,10 +68,12 @@ class PlayerOption:
 qualityList = ["FHD", "HD", "SD"]
 supportedHostings = ['cda', 'sibnet', 'd-on']
 
-animeNames = [args.name]
+animeNames = []
 if args.file == None:
     if args.name == None:
         animeNames += [input("Enter name of the anime: ")]
+    else:
+        animeNames = [args.name]
 else:
     f = open(args.file, "r")
     for animeName in f:
@@ -79,6 +81,8 @@ else:
 
 
 for animeName in animeNames:
+    if animeName == None:
+        continue
     # searching if anime exists
     page = requests.get("http://wbijam.pl/")
     if page.status_code != 200:
@@ -90,8 +94,6 @@ for animeName in animeNames:
     found = False
 
     for anime in animeTable:
-        if anime.text == None:
-            continue
         if anime.text.lower().strip() == animeName.lower().strip():
             print("Anime found!")
             subLink = anime['href']
