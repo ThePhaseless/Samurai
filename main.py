@@ -90,6 +90,8 @@ for animeName in animeNames:
     found = False
 
     for anime in animeTable:
+        if anime == None:
+            continue
         if anime.text.lower().strip() == animeName.lower().strip():
             print("Anime found!")
             subLink = anime['href']
