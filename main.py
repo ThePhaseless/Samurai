@@ -90,7 +90,7 @@ for animeName in animeNames:
     found = False
 
     for anime in animeTable:
-        if anime == None:
+        if anime.text == None:
             continue
         if anime.text.lower().strip() == animeName.lower().strip():
             print("Anime found!")
