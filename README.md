@@ -1,4 +1,4 @@
-# WbijamAnimeScrapper
+# Samurai
 
 How to use? 
 ```
